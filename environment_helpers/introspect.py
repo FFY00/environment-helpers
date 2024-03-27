@@ -97,7 +97,7 @@ def get_system_scheme(interpreter: os.PathLike[str]) -> SchemeDict:
 
     :param interpreter: Path to the Python interpreter to introspect.
     """
-    # Fedora automatically changes the default scheme if RPM_BUILD_ROOT is not set
+    # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
     environment = os.environ.copy()
     environment['RPM_BUILD_ROOT'] = None
     return _run_script('system-scheme', interpreter, env=environment)
