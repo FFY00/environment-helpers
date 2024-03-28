@@ -22,6 +22,9 @@ class Environment(Protocol):
     """Object representing a Python environment."""
 
     @property
+    def base(self) -> pathlib.Path: ...
+
+    @property
     def interpreter(self) -> pathlib.Path: ...
 
     @property
@@ -74,8 +77,13 @@ class VirtualEnvironment(Environment):
     """Object representing a virtual environment (using the ``venv`` scheme)."""
 
     def __init__(self, path: pathlib.Path) -> None:
+        self._base = path
         self._scheme = environment_helpers.introspect.get_virtual_environment_scheme(path)
         assert self.interpreter.is_file()
+
+    @property
+    def base(self) -> pathlib.Path:
+        return self._base
 
     @property
     def interpreter(self) -> pathlib.Path:
