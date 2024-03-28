@@ -22,6 +22,19 @@ def build_sdist(
     return pathlib.Path(outdir, sdist_name)
 
 
+def build_wheel(
+    srcdir: os.PathLike[str],
+    outdir: os.PathLike[str],
+    config_settings: Optional[build.ConfigSettingsType] = None,
+) -> pathlib.Path:
+    with build.env.DefaultIsolatedEnv() as env:
+        builder = build.ProjectBuilder.from_isolated_env(env, srcdir)
+        env.install(builder.build_system_requires)
+        env.install(builder.get_requires_for_build('wheel', config_settings or {}))
+        wheel_name = builder.build('wheel', outdir, config_settings or {})
+    return pathlib.Path(outdir, wheel_name)
+
+
 def build_wheel_via_sdist(
     srcdir: os.PathLike[str],
     outdir: os.PathLike[str],
