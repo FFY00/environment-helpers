@@ -15,7 +15,7 @@ import environment_helpers.install
 import environment_helpers.introspect
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class Environment(Protocol):
