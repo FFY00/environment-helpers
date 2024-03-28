@@ -30,6 +30,10 @@ class Environment(Protocol):
     @property
     def scripts(self) -> pathlib.Path: ...
 
+    @property
+    def scheme(self) -> environment_helpers.introspect.SchemeDict:
+        """Default install scheme for the environment."""
+
     def run_interpreter(self, *args: Sequence[str], **kwargs: Any) -> bytes:
         return subprocess.check_output([os.fspath(self.interpreter), *args], **kwargs)
 
@@ -93,6 +97,10 @@ class VirtualEnvironment(Environment):
     @property
     def scripts(self) -> pathlib.Path:
         return pathlib.Path(self._scheme['scripts'])
+
+    @property
+    def scheme(self) -> environment_helpers.introspect.SchemeDict:
+        return self._scheme
 
 
 def create_venv(path: os.PathLike[str], **kwargs: Any) -> Environment:
