@@ -45,11 +45,21 @@ class Environment(Protocol):
             raise ValueError(f"{os.fspath(path)} isn't a file")
         environment_helpers.install.install_wheel(path, self.interpreter, scheme)
 
-    def install_from_path(self, path: os.PathLike[str], scheme: Optional[str] = None) -> None:
+    def install_from_path(
+        self,
+        path: os.PathLike[str],
+        scheme: Optional[str] = None,
+        from_sdist: bool = True,
+    ) -> None:
         if not os.path.isdir(path):
             raise ValueError(f"{os.fspath(path)} isn't a directory")
+        build_func = (
+            environment_helpers.build.build_wheel_via_sdist
+            if from_sdist
+            else environment_helpers.build.build_wheel
+        )
         with tempfile.TemporaryDirectory(prefix='environment-helpers-') as workdir:
-            wheel = environment_helpers.build.build_wheel_via_sdist(path, workdir)
+            wheel = build_func(path, workdir)
             self.install_wheel(wheel)
 
     def install(
