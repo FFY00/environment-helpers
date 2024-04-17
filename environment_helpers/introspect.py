@@ -78,12 +78,12 @@ class Introspectable:
             )
         return json.loads(data)
 
-    def get_version(self, interpreter: os.PathLike[str]) -> PythonVersion:
-        data = self._run_script('version', interpreter)
+    def get_version(self) -> PythonVersion:
+        data = self._run_script('version')
         return PythonVersion(**data)
 
     @functools.lru_cache
-    def get_scheme(self, interpreter: os.PathLike[str], scheme: Optional[str] = None) -> SchemeDict:
+    def get_scheme(self, scheme: Optional[str] = None) -> SchemeDict:
         """Finds the installation paths for a certain Python install scheme.
 
         This helper needs to run the Python interpreter for the target environment.
@@ -91,33 +91,29 @@ class Introspectable:
         :param interpreter: Path to the Python interpreter to introspect.
         :param scheme: Name of the target scheme name. If None, it uses the default scheme.
         """
-        return self._run_script('scheme', interpreter)
+        return self._run_script('scheme')
 
     @functools.lru_cache
-    def get_system_scheme(self, interpreter: os.PathLike[str]) -> SchemeDict:
+    def get_system_scheme(self) -> SchemeDict:
         """Finds the installation paths for the system Python install scheme.
 
         Certain vendors, such as Debian, have a different scheme for system packages.
         This function finds the install scheme for system packages.
 
         This helper needs to run the Python interpreter for the target environment.
-
-        :param interpreter: Path to the Python interpreter to introspect.
         """
         # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
         environment = os.environ.copy()
         environment['RPM_BUILD_ROOT'] = None
-        return self._run_script('system-scheme', interpreter, env=environment)
+        return self._run_script('system-scheme', env=environment)
 
     @functools.lru_cache
-    def get_launcher_kind(self, interpreter: os.PathLike[str]) -> Optional[LauncherKind]:
+    def get_launcher_kind(self) -> Optional[LauncherKind]:
         """Find the launcher kind.
 
         This helper needs to run the Python interpreter for the target environment.
-
-        :param interpreter: Path to the Python interpreter to introspect.
         """
-        return self._run_script('launcher-kind', interpreter)
+        return self._run_script('launcher-kind')
 
     def call(self, func: Callable[[Any], T], *args: Sequence[Any], **kwargs: Dict[str, Any]) -> T:
         """Call the a function in the target environment.
