@@ -115,12 +115,7 @@ class Introspectable:
         """
         return self._run_script('launcher-kind')
 
-    def call(
-        self,
-        func: Union[str, Callable[[Any], T]],
-        *args: Sequence[Any],
-        **kwargs: Dict[str, Any],
-    ) -> T:
+    def call(self, func: Union[str, Callable[[Any], T]], *args: Any, **kwargs: Any) -> T:
         """Call the a function in the target environment.
 
         :param interpreter: Path to the Python interpreter to introspect.
