@@ -34,6 +34,11 @@ class Environment(Protocol):
     def scheme(self) -> environment_helpers.introspect.SchemeDict:
         """Default install scheme for the environment."""
 
+    @property
+    def introspectable(self) -> environment_helpers.introspect.Introspectable:
+        """Introspectable object for the environment."""
+        return environment_helpers.introspect.Introspectable(self.interpreter)
+
     def run_interpreter(self, *args: Sequence[str], **kwargs: Any) -> bytes:
         return subprocess.check_output([os.fspath(self.interpreter), *args], **kwargs)
 
