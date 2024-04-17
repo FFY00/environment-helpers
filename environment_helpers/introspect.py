@@ -41,18 +41,6 @@ class PythonVersion(NamedTuple):
     serial: int
 
 
-def _run_script(name: str, interpreter: os.PathLike[str], **kwargs: Any) -> Any:
-    script = importlib_resources.files('environment_helpers._scripts') / f'{name}.py'
-    with importlib_resources.as_file(script) as script_path:
-        data = subprocess.check_output([os.fspath(interpreter), os.fspath(script_path)], **kwargs)
-    return json.loads(data)
-
-
-def get_version(interpreter: os.PathLike[str]) -> PythonVersion:
-    data = _run_script('version', interpreter)
-    return PythonVersion(**data)
-
-
 def get_virtual_environment_scheme(path: os.PathLike[str]) -> SchemeDict:
     """Calculates the installation paths for the scheme used by a certain virtual environment.
 
@@ -78,71 +66,80 @@ def get_virtual_environment_scheme(path: os.PathLike[str]) -> SchemeDict:
     return sysconfig.get_paths(scheme=scheme, vars=config_vars)
 
 
-@functools.lru_cache
-def get_scheme(interpreter: os.PathLike[str], scheme: Optional[str] = None) -> SchemeDict:
-    """Finds the installation paths for a certain Python install scheme.
+class Introspectable:
+    def __init__(self, interpreter: os.PathLike[str]) -> None:
+        self._interpreter = interpreter
 
-    This helper needs to run the Python interpreter for the target environment.
+    def _run_script(self, name: str, **kwargs: Any) -> Any:
+        script = importlib_resources.files('environment_helpers._scripts') / f'{name}.py'
+        with importlib_resources.as_file(script) as script_path:
+            data = subprocess.check_output(
+                [os.fspath(self._interpreter), os.fspath(script_path)], **kwargs
+            )
+        return json.loads(data)
 
-    :param interpreter: Path to the Python interpreter to introspect.
-    :param scheme: Name of the target scheme name. If None, it uses the default scheme.
-    """
-    return _run_script('scheme', interpreter)
+    def get_version(self, interpreter: os.PathLike[str]) -> PythonVersion:
+        data = self._run_script('version', interpreter)
+        return PythonVersion(**data)
 
+    @functools.lru_cache
+    def get_scheme(self, interpreter: os.PathLike[str], scheme: Optional[str] = None) -> SchemeDict:
+        """Finds the installation paths for a certain Python install scheme.
 
-@functools.lru_cache
-def get_system_scheme(interpreter: os.PathLike[str]) -> SchemeDict:
-    """Finds the installation paths for the system Python install scheme.
+        This helper needs to run the Python interpreter for the target environment.
 
-    Certain vendors, such as Debian, have a different scheme for system packages.
-    This function finds the install scheme for system packages.
+        :param interpreter: Path to the Python interpreter to introspect.
+        :param scheme: Name of the target scheme name. If None, it uses the default scheme.
+        """
+        return self._run_script('scheme', interpreter)
 
-    This helper needs to run the Python interpreter for the target environment.
+    @functools.lru_cache
+    def get_system_scheme(self, interpreter: os.PathLike[str]) -> SchemeDict:
+        """Finds the installation paths for the system Python install scheme.
 
-    :param interpreter: Path to the Python interpreter to introspect.
-    """
-    # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
-    environment = os.environ.copy()
-    environment['RPM_BUILD_ROOT'] = None
-    return _run_script('system-scheme', interpreter, env=environment)
+        Certain vendors, such as Debian, have a different scheme for system packages.
+        This function finds the install scheme for system packages.
 
+        This helper needs to run the Python interpreter for the target environment.
 
-def get_launcher_kind(interpreter: os.PathLike[str]) -> Optional[LauncherKind]:
-    """Find the launcher kind.
+        :param interpreter: Path to the Python interpreter to introspect.
+        """
+        # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
+        environment = os.environ.copy()
+        environment['RPM_BUILD_ROOT'] = None
+        return self._run_script('system-scheme', interpreter, env=environment)
 
-    This helper needs to run the Python interpreter for the target environment.
+    @functools.lru_cache
+    def get_launcher_kind(self, interpreter: os.PathLike[str]) -> Optional[LauncherKind]:
+        """Find the launcher kind.
 
-    :param interpreter: Path to the Python interpreter to introspect.
-    """
-    return _run_script('launcher-kind', interpreter)
+        This helper needs to run the Python interpreter for the target environment.
 
+        :param interpreter: Path to the Python interpreter to introspect.
+        """
+        return self._run_script('launcher-kind', interpreter)
 
-def call(
-    interpreter: os.PathLike[str],
-    func: Callable[[Any], T],
-    *args: Sequence[Any],
-    **kwargs: Dict[str, Any],
-) -> T:
-    """Call the a function in the target environment.
+    def call(self, func: Callable[[Any], T], *args: Sequence[Any], **kwargs: Dict[str, Any]) -> T:
+        """Call the a function in the target environment.
 
-    :param interpreter: Path to the Python interpreter to introspect.
-    :param func: Function to call.
-    :param args: Positional arguments to pass to the function.
-    :param kwargs: Keyword arguments to pass to the function.
-    """
-    args_dict = {'args': args, 'kwargs': kwargs}
-    pickled_args_dict = pickle.dumps(args_dict)
+        :param interpreter: Path to the Python interpreter to introspect.
+        :param func: Function to call.
+        :param args: Positional arguments to pass to the function.
+        :param kwargs: Keyword arguments to pass to the function.
+        """
+        args_dict = {'args': args, 'kwargs': kwargs}
+        pickled_args_dict = pickle.dumps(args_dict)
 
-    script = importlib_resources.files('environment_helpers._scripts') / 'call.py'
-    with importlib_resources.as_file(script) as script_path:
-        data = subprocess.check_output(
-            [
-                os.fspath(interpreter),
-                os.fspath(script_path),
-                func.__module__,
-                func.__qualname__,
-            ],
-            input=pickled_args_dict,
-        )
+        script = importlib_resources.files('environment_helpers._scripts') / 'call.py'
+        with importlib_resources.as_file(script) as script_path:
+            data = subprocess.check_output(
+                [
+                    os.fspath(self._interpreter),
+                    os.fspath(script_path),
+                    func.__module__,
+                    func.__qualname__,
+                ],
+                input=pickled_args_dict,
+            )
 
-    return pickle.loads(data)
+        return pickle.loads(data)
