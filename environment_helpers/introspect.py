@@ -8,7 +8,7 @@ import sysconfig
 import warnings
 
 from collections.abc import Sequence
-from typing import Any, Callable, Dict, Literal, NamedTuple, Optional, TypedDict, TypeVar
+from typing import Any, Callable, Dict, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
 
 
 if sys.version_info >= (3, 9):
@@ -115,7 +115,12 @@ class Introspectable:
         """
         return self._run_script('launcher-kind')
 
-    def call(self, func: Callable[[Any], T], *args: Sequence[Any], **kwargs: Dict[str, Any]) -> T:
+    def call(
+        self,
+        func: Union[str, Callable[[Any], T]],
+        *args: Sequence[Any],
+        **kwargs: Dict[str, Any],
+    ) -> T:
         """Call the a function in the target environment.
 
         :param interpreter: Path to the Python interpreter to introspect.
@@ -123,18 +128,19 @@ class Introspectable:
         :param args: Positional arguments to pass to the function.
         :param kwargs: Keyword arguments to pass to the function.
         """
+        if isinstance(func, str):
+            module, func_name = func.rsplit('.', maxsplit=1)
+        else:
+            module = func.__module__
+            func_name = func.__qualname__
+
         args_dict = {'args': args, 'kwargs': kwargs}
         pickled_args_dict = pickle.dumps(args_dict)
 
         script = importlib_resources.files('environment_helpers._scripts') / 'call.py'
         with importlib_resources.as_file(script) as script_path:
             data = subprocess.check_output(
-                [
-                    os.fspath(self._interpreter),
-                    os.fspath(script_path),
-                    func.__module__,
-                    func.__qualname__,
-                ],
+                [os.fspath(self._interpreter), os.fspath(script_path), module, func_name],
                 input=pickled_args_dict,
             )
 
