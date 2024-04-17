@@ -1,12 +1,14 @@
 import functools
 import json
 import os
+import pickle
 import subprocess
 import sys
 import sysconfig
 import warnings
 
-from typing import Any, Literal, NamedTuple, Optional, TypedDict
+from collections.abc import Sequence
+from typing import Any, Callable, Dict, Literal, NamedTuple, Optional, TypedDict, TypeVar
 
 
 if sys.version_info >= (3, 9):
@@ -16,6 +18,8 @@ else:
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
+
+T = TypeVar('T')
 
 
 class SchemeDict(TypedDict):
@@ -111,3 +115,34 @@ def get_launcher_kind(interpreter: os.PathLike[str]) -> Optional[LauncherKind]:
     :param interpreter: Path to the Python interpreter to introspect.
     """
     return _run_script('launcher-kind', interpreter)
+
+
+def call(
+    interpreter: os.PathLike[str],
+    func: Callable[[Any], T],
+    *args: Sequence[Any],
+    **kwargs: Dict[str, Any],
+) -> T:
+    """Call the a function in the target environment.
+
+    :param interpreter: Path to the Python interpreter to introspect.
+    :param func: Function to call.
+    :param args: Positional arguments to pass to the function.
+    :param kwargs: Keyword arguments to pass to the function.
+    """
+    args_dict = {'args': args, 'kwargs': kwargs}
+    pickled_args_dict = pickle.dumps(args_dict)
+
+    script = importlib_resources.files('environment_helpers._scripts') / 'call.py'
+    with importlib_resources.as_file(script) as script_path:
+        data = subprocess.check_output(
+            [
+                os.fspath(interpreter),
+                os.fspath(script_path),
+                func.__module__,
+                func.__qualname__,
+            ],
+            input=pickled_args_dict,
+        )
+
+    return pickle.loads(data)
