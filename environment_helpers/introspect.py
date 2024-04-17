@@ -40,7 +40,7 @@ class PythonVersion(NamedTuple):
 def _run_script(name: str, interpreter: os.PathLike[str], **kwargs: Any) -> Any:
     script = importlib_resources.files('environment_helpers._scripts') / f'{name}.py'
     with importlib_resources.as_file(script) as script_path:
-        data = subprocess.check_output([os.fspath(interpreter), os.fspath(script_path)])
+        data = subprocess.check_output([os.fspath(interpreter), os.fspath(script_path)], **kwargs)
     return json.loads(data)
 
 
