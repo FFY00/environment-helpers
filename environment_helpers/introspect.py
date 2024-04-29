@@ -7,8 +7,7 @@ import sys
 import sysconfig
 import warnings
 
-from collections.abc import Sequence
-from typing import Any, Callable, Dict, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
+from typing import Any, Callable, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
 
 
 if sys.version_info >= (3, 9):

@@ -4,7 +4,7 @@ import sys
 
 
 if len(sys.argv) != 3:
-    print(f'usage: {sys.argv[0]} <module> <function>', file=sys.stderr)
+    print(f'usage: {sys.argv[0]} <module> <function>', file=sys.stderr)  # noqa: T201
     exit(1)
 
 
