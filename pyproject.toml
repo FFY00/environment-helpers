@@ -36,6 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   'pytest >= 7',
+  'podman >= 5',
 ]
 
 [tool.coverage.html]
