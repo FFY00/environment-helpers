@@ -1,8 +1,13 @@
 import concurrent.futures
+import json
 import os
 import pathlib
+import uuid
+
+from typing import NamedTuple
 
 import podman
+import podman.domain.containers
 import pytest
 
 import environment_helpers
@@ -42,6 +47,37 @@ def container_mount(tmp_path_factory):
     return tmp_path_factory.mktemp('container-mount')
 
 
+class ContainerExecutionError(Exception):
+    def __init__(self, code: int, response: bytes) -> None:
+        super().__init__(f'Command exited with code {code} (response: {response})')
+
+
+class Container(NamedTuple):
+    name: str
+    handle: podman.domain.containers.Container
+    writable_mount: pathlib.Path
+
+    def __repr__(self) -> str:
+        return f'Container({self.name})'
+
+    def run(self, command: list[str]) -> None:
+        code, response = self.handle.exec_run(command)
+        if code != 0:
+            raise ContainerExecutionError(code, response)
+
+    def introspect(self, action: str) -> object:
+        filename = f'{action}-{uuid.uuid4()}.json'
+        self.run(
+            [
+                'python3',
+                '/source/tests/helpers/introspect.py',
+                f'--write-to-file=/output/{filename}',
+            ]
+        )
+        with self.writable_mount.joinpath(filename).open('r') as f:
+            return json.load(f)
+
+
 @pytest.fixture(scope='session')
 def containers(podman_client, root_path, container_mount):
     debian_setup = ['apt-get update', 'apt-install -y python3 python3-distutils']
@@ -62,7 +98,7 @@ def containers(podman_client, root_path, container_mount):
         podman_client.images.pull(name)
         writable_mount_path = container_mount / name
         writable_mount_path.mkdir()
-        container = podman_client.containers.run(
+        handle = podman_client.containers.run(
             name,
             ['sh', '-c', 'sleep infinity'],
             detach=True,
@@ -79,11 +115,12 @@ def containers(podman_client, root_path, container_mount):
                     'target': '/output',
                     'read_only': False,
                 },
-            ]
+            ],
         )
+        container = Container(name, handle, writable_mount_path)
         for command in setup_commands:
-            container.exec_run(command)
-        return name, container
+            container.run(command)
+        return container
 
     containers = {}
 
@@ -94,15 +131,12 @@ def containers(podman_client, root_path, container_mount):
                 for name, setup_commands in container_setup.items()
             ]
             for future in concurrent.futures.as_completed(futures):
-                name, container = future.result()
-                containers[name] = container
+                container = future.result()
+                containers[container.name] = container
 
         yield containers
     finally:
         # stop the containers
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(container.stop)
-                for container in containers.values()
-            ]
+            futures = [executor.submit(container.handle.stop) for container in containers.values()]
             concurrent.futures.wait(futures)
