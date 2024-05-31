@@ -1,5 +1,7 @@
 """Collection of helpers for managing Python environments."""
 
+from __future__ import annotations
+
 import os
 import pathlib
 import shutil
