@@ -3,19 +3,13 @@ from __future__ import annotations
 import functools
 import json
 import os
+import pathlib
 import pickle
 import subprocess
-import sys
 import sysconfig
 import warnings
 
 from typing import Any, Callable, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
-
-
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:
-    import importlib_resources
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
@@ -72,11 +66,8 @@ class Introspectable:
         self._interpreter = interpreter
 
     def _run_script(self, name: str, **kwargs: Any) -> Any:
-        script = importlib_resources.files('environment_helpers._scripts') / f'{name}.py'
-        with importlib_resources.as_file(script) as script_path:
-            data = subprocess.check_output(
-                [os.fspath(self._interpreter), os.fspath(script_path)], **kwargs
-            )
+        script = pathlib.Path(__file__).parent / '_scripts' / f'{name}.py'
+        data = subprocess.check_output([os.fspath(self._interpreter), os.fspath(script)], **kwargs)
         return json.loads(data)
 
     def get_version(self) -> PythonVersion:
@@ -133,11 +124,10 @@ class Introspectable:
         args_dict = {'args': args, 'kwargs': kwargs}
         pickled_args_dict = pickle.dumps(args_dict)
 
-        script = importlib_resources.files('environment_helpers._scripts') / 'call.py'
-        with importlib_resources.as_file(script) as script_path:
-            data = subprocess.check_output(
-                [os.fspath(self._interpreter), os.fspath(script_path), module, func_name],
-                input=pickled_args_dict,
-            )
+        script = pathlib.Path(__file__).parent / '_scripts' / f'call.py'
+        data = subprocess.check_output(
+            [os.fspath(self._interpreter), os.fspath(script), module, func_name],
+            input=pickled_args_dict,
+        )
 
         return pickle.loads(data)
