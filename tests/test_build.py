@@ -32,4 +32,3 @@ def build_wheel_via_sdist_fail(packages_path, tmp_path):
     package = packages_path / 'test-cant-build-via-sdist'
     with pytest.raises(build.BuildBackendException):
         environment_helpers.build.build_wheel_via_sdist(package, tmp_path)
-
