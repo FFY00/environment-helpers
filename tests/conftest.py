@@ -4,7 +4,7 @@ import os
 import pathlib
 import uuid
 
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 import podman
 import podman.domain.containers
@@ -60,7 +60,7 @@ class Container(NamedTuple):
     def __repr__(self) -> str:
         return f'Container({self.name})'
 
-    def run(self, command: list[str]) -> None:
+    def run(self, command: List[str]) -> None:
         code, response = self.handle.exec_run(command)
         if code != 0:
             raise ContainerExecutionError(code, response)
