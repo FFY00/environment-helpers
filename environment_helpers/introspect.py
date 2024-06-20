@@ -124,7 +124,7 @@ class Introspectable:
         args_dict = {'args': args, 'kwargs': kwargs}
         pickled_args_dict = pickle.dumps(args_dict)
 
-        script = pathlib.Path(__file__).parent / '_scripts' / f'call.py'
+        script = pathlib.Path(__file__).parent / '_scripts' / 'call.py'
         data = subprocess.check_output(
             [os.fspath(self._interpreter), os.fspath(script), module, func_name],
             input=pickled_args_dict,

@@ -16,13 +16,16 @@ import environment_helpers.introspect  # noqa: E402
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=[
-        'get_virtual_environment_scheme',
-        'get_version',
-        'get_scheme',
-        'get_system_scheme',
-        'get_launcher_kind',
-    ])
+    parser.add_argument(
+        'action',
+        choices=[
+            'get_virtual_environment_scheme',
+            'get_version',
+            'get_scheme',
+            'get_system_scheme',
+            'get_launcher_kind',
+        ],
+    )
     parser.add_argument('--interpreter', type=str, default=sys.executable)
     parser.add_argument('--write-to-file', type=pathlib.Path, required=False)
     args = parser.parse_args()

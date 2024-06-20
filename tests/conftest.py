@@ -32,7 +32,7 @@ def example_wheel(packages_path, tmp_path_factory):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def venv(tmp_path):
     return environment_helpers.create_venv(tmp_path)
 
