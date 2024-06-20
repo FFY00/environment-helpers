@@ -37,6 +37,7 @@ dependencies = [
 test = [
   'pytest >= 7',
   'pytest-cov >= 5',
+  'pytest-mock >= 2',
   'podman >= 5',
 ]
 
