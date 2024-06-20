@@ -98,7 +98,7 @@ class VirtualEnvironment(Environment):
     """Object representing a virtual environment (using the ``venv`` scheme)."""
 
     def __init__(self, path: os.PathLike[str]) -> None:
-        self._base = os.fspath(path)
+        self._base = path
         self._scheme = environment_helpers.introspect.get_virtual_environment_scheme(path)
         assert self.interpreter.is_file()
 
