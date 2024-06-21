@@ -40,6 +40,11 @@ test = [
   'pytest-mock >= 2',
   'podman >= 5',
 ]
+docs = [
+  'furo >= 2023.08.17',
+  'sphinx ~= 7.0',
+  'sphinx-autodoc-typehints >= 1.10',
+]
 
 [tool.coverage.html]
 show_contexts = true
