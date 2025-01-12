@@ -85,7 +85,7 @@ class Environment(Protocol):
                 raise ValueError('No valid install method found.')
 
         if method == 'pip':
-            cmd = ['pip', 'install', '--python', os.fspath(self.interpreter), 'install']
+            cmd = ['pip', '--python', os.fspath(self.interpreter), 'install']
         elif method == 'pip-local':
             cmd = [os.fspath(self.interpreter), '-m', 'pip', 'install']
         elif method == 'uv':
