@@ -75,12 +75,12 @@ class Environment(Protocol):
         method: Optional[Literal['pip', 'uv', 'pip-local']] = None,
     ) -> None:
         if not method:
-            if (self.scripts / 'pip').is_file():
+            if shutil.which('uv'):
+                method = 'uv'
+            elif (self.scripts / 'pip').is_file():
                 method = 'pip-local'
             elif shutil.which('pip'):
                 method = 'pip'
-            elif shutil.which('uv'):
-                method = 'uv'
             else:
                 raise ValueError('No valid install method found.')
 
