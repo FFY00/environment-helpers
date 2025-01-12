@@ -89,7 +89,7 @@ class Environment(Protocol):
         elif method == 'pip-local':
             cmd = [os.fspath(self.interpreter), '-m', 'pip', 'install']
         elif method == 'uv':
-            cmd = ['uv', 'pip', '--python', os.fspath(self.interpreter), 'install']
+            cmd = ['uv', 'pip', 'install', '--python', os.fspath(self.interpreter),]
 
         subprocess.check_call([*cmd, *requirements])
 
