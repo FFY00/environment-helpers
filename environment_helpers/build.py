@@ -12,8 +12,8 @@ import build.env
 
 
 def build_sdist(
-    srcdir: os.PathLike[str],
-    outdir: os.PathLike[str],
+    srcdir: os.PathLike[str] | str,
+    outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
 ) -> pathlib.Path:
     with build.env.DefaultIsolatedEnv() as env:
@@ -25,8 +25,8 @@ def build_sdist(
 
 
 def build_wheel(
-    srcdir: os.PathLike[str],
-    outdir: os.PathLike[str],
+    srcdir: os.PathLike[str] | str,
+    outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
 ) -> pathlib.Path:
     with build.env.DefaultIsolatedEnv() as env:
@@ -38,8 +38,8 @@ def build_wheel(
 
 
 def build_wheel_via_sdist(
-    srcdir: os.PathLike[str],
-    outdir: os.PathLike[str],
+    srcdir: os.PathLike[str] | str,
+    outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
 ) -> pathlib.Path:
     sdist = build_sdist(srcdir, outdir, config_settings or {})

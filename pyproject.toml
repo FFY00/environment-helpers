@@ -54,6 +54,9 @@ files = 'src'
 strict = true
 show_error_codes = true
 python_version = '3.8'
+exclude = [
+  '^environment_helpers/_scripts/*$'
+]
 
 [tool.ruff]
 src = ['src']

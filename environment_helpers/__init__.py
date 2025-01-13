@@ -42,13 +42,14 @@ class Environment(Protocol):
         return environment_helpers.introspect.Introspectable(self.interpreter)
 
     def run_interpreter(self, *args: Sequence[str], **kwargs: Any) -> bytes:
-        return subprocess.check_output([os.fspath(self.interpreter), *args], **kwargs)
+        return subprocess.check_output([os.fspath(self.interpreter), *args], **kwargs)  # type: ignore[list-item, return-value]
 
     def run_script(self, name: str, *args: Sequence[str]) -> bytes:
-        return subprocess.check_output([os.fspath(self.scripts / name), *args])
+        return subprocess.check_output([os.fspath(self.scripts / name), *args])  # type: ignore[list-item]
 
     def install_wheel(self, path: os.PathLike[str], scheme: Optional[str] = None) -> None:
-        if not os.path.isfile(path):
+        path = pathlib.Path(path)
+        if not path.is_file():
             raise ValueError(f"{os.fspath(path)} isn't a file")
         environment_helpers.install.install_wheel(path, self.interpreter, scheme)
 
@@ -97,8 +98,8 @@ class Environment(Protocol):
 class VirtualEnvironment(Environment):
     """Object representing a virtual environment (using the ``venv`` scheme)."""
 
-    def __init__(self, path: os.PathLike[str]) -> None:
-        self._base = path
+    def __init__(self, path: os.PathLike[str] | str) -> None:
+        self._base = pathlib.Path(path)
         self._scheme = environment_helpers.introspect.get_virtual_environment_scheme(path)
         assert self.interpreter.is_file()
 
@@ -120,6 +121,6 @@ class VirtualEnvironment(Environment):
         return self._scheme
 
 
-def create_venv(path: os.PathLike[str], **kwargs: Any) -> Environment:
+def create_venv(path: os.PathLike[str] | str, **kwargs: Any) -> Environment:
     venv.create(path, **kwargs)
     return VirtualEnvironment(path)

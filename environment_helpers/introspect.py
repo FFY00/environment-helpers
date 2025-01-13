@@ -77,7 +77,7 @@ def get_virtual_environment_scheme(path: os.PathLike[str] | str) -> SchemeDict[p
 
 
 class Introspectable:
-    def __init__(self, interpreter: os.PathLike[str]) -> None:
+    def __init__(self, interpreter: os.PathLike[str] | str) -> None:
         self._interpreter = interpreter
 
     def _run_script(self, name: str, **kwargs: Any) -> Any:
@@ -111,7 +111,7 @@ class Introspectable:
         """
         # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
         environment = os.environ.copy()
-        environment['RPM_BUILD_ROOT'] = None
+        environment['RPM_BUILD_ROOT'] = ''
         return _scheme_dict(self._run_script('system-scheme', env=environment))
 
     @functools.lru_cache
@@ -120,7 +120,7 @@ class Introspectable:
 
         This helper needs to run the Python interpreter for the target environment.
         """
-        return self._run_script('launcher-kind')
+        return typing.cast(Optional[LauncherKind], self._run_script('launcher-kind'))
 
     def call(self, func: Union[str, Callable[[Any], T]], *args: Any, **kwargs: Any) -> T:
         """Call the a function in the target environment.
@@ -145,4 +145,4 @@ class Introspectable:
             input=pickled_args_dict,
         )
 
-        return pickle.loads(data)
+        return typing.cast(T, pickle.loads(data))
