@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import os
 import pathlib
+import subprocess
 import tarfile
 import tempfile
 
@@ -24,9 +25,13 @@ def _build_env(isolated: bool = True) -> Iterable[environment_helpers.Environmen
 
 
 @contextlib.contextmanager  # type: ignore[arg-type]
-def _builder(srcdir: os.PathLike[str] | str, isolated: bool = True) -> Iterable[tuple[environment_helpers.Environment, build.ProjectBuilder]]:
+def _builder(
+    srcdir: os.PathLike[str] | str,
+    isolated: bool = True,
+    quiet: bool = False,
+) -> Iterable[tuple[environment_helpers.Environment, build.ProjectBuilder]]:
     def runner(cmd: Sequence[str], cwd: Optional[str], extra_environ: Mapping[str, str] | None = None) -> None:
-        env.run(*cmd, cwd=cwd, env=env.env | extra_environ)  # type: ignore[operator]
+        subprocess.run(cmd, check=True, capture_output=quiet, cwd=cwd, env=env.env | extra_environ)  # type: ignore[operator]
 
     env: environment_helpers.Environment
     with _build_env(isolated) as env:
@@ -38,10 +43,11 @@ def build_sdist(
     outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
     isolated: bool = True,
+    quiet: bool = False,
 ) -> pathlib.Path:
     env: environment_helpers.Environment
     builder: build.ProjectBuilder
-    with _builder(srcdir, isolated) as (env, builder):  # type: ignore[misc]
+    with _builder(srcdir, isolated, quiet) as (env, builder):  # type: ignore[misc]
         env.install(builder.build_system_requires)
         env.install(builder.get_requires_for_build('sdist', config_settings or {}))
         sdist_name = builder.build('sdist', outdir, config_settings or {})
@@ -53,10 +59,11 @@ def build_wheel(
     outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
     isolated: bool = True,
+    quiet: bool = False,
 ) -> pathlib.Path:
     env: environment_helpers.Environment
     builder: build.ProjectBuilder
-    with _builder(srcdir, isolated) as (env, builder):  # type: ignore[misc]
+    with _builder(srcdir, isolated, quiet) as (env, builder):  # type: ignore[misc]
         env.install(builder.build_system_requires)
         env.install(builder.get_requires_for_build('wheel', config_settings or {}))
         wheel_name = builder.build('wheel', outdir, config_settings or {})
@@ -68,6 +75,7 @@ def build_wheel_via_sdist(
     outdir: os.PathLike[str] | str,
     config_settings: Optional[build.ConfigSettingsType] = None,
     isolated: bool = True,
+    quiet: bool = False,
 ) -> pathlib.Path:
     sdist = build_sdist(srcdir, outdir, config_settings or {})
     with tempfile.TemporaryDirectory(prefix='environment-helpers-') as workdir:
@@ -76,4 +84,4 @@ def build_wheel_via_sdist(
             t.extractall(workdir)
         sdist_dir = os.path.join(workdir, sdist.name[:-len('.tar.gz')])
         # Build wheel from sdist source
-        return build_wheel(sdist_dir, outdir, config_settings, isolated)
+        return build_wheel(sdist_dir, outdir, config_settings, isolated, quiet)
