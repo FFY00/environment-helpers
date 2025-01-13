@@ -47,11 +47,17 @@ class Environment(Protocol):
         """Introspectable object for the environment."""
         return environment_helpers.introspect.Introspectable(self.interpreter)
 
-    def run_interpreter(self, *args: Sequence[str], **kwargs: Any) -> bytes:
-        return subprocess.check_output([os.fspath(self.interpreter), *args], **kwargs)  # type: ignore[list-item, return-value]
+    def run(self, *args: str, **kwargs: Any) -> bytes:
+        default_kwargs = {
+            'env': self.env,
+        }
+        return subprocess.check_output(args, **default_kwargs | kwargs)  # type: ignore[operator, return-value]
 
-    def run_script(self, name: str, *args: Sequence[str]) -> bytes:
-        return subprocess.check_output([os.fspath(self.scripts / name), *args])  # type: ignore[list-item]
+    def run_interpreter(self, *args: str, **kwargs: Any) -> bytes:
+        return self.run(os.fspath(self.interpreter), *args, **kwargs)
+
+    def run_script(self, name: str, *args: str) -> bytes:
+        return self.run(os.fspath(self.scripts / name), *args)
 
     def install_wheel(self, path: os.PathLike[str], scheme: Optional[str] = None) -> None:
         path = pathlib.Path(path)
