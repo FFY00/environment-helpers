@@ -8,8 +8,9 @@ import pickle
 import subprocess
 import sysconfig
 import warnings
+import typing
 
-from typing import Any, Callable, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
+from typing import Any, Callable, Literal, Generic, NamedTuple, Optional, TypedDict, TypeVar, Union
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
@@ -17,15 +18,15 @@ LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
 T = TypeVar('T')
 
 
-class SchemeDict(TypedDict):
-    stdlib: str
-    platstdlib: str
-    purelib: str
-    platlib: str
-    include: str
-    platinclude: str
-    scripts: str
-    data: str
+class SchemeDict(Generic[T], TypedDict):
+    stdlib: T
+    platstdlib: T
+    purelib: T
+    platlib: T
+    include: T
+    platinclude: T
+    scripts: T
+    data: T
 
 
 class PythonVersion(NamedTuple):
@@ -36,7 +37,21 @@ class PythonVersion(NamedTuple):
     serial: int
 
 
-def get_virtual_environment_scheme(path: os.PathLike[str]) -> SchemeDict:
+def scheme_dict_as_sysconfig(scheme: SchemeDict[os.PathLike[str] | str]) -> SchemeDict[str]:
+    return typing.cast(SchemeDict[str], {
+        key: os.fspath(value)  # type: ignore[call-overload]
+        for key, value in scheme.items()
+    })
+
+
+def _scheme_dict(scheme: dict[str, str]) -> SchemeDict[pathlib.Path]:
+    return typing.cast(SchemeDict[pathlib.Path], {
+        key: pathlib.Path(value)
+        for key, value in scheme.items()
+    })
+
+
+def get_virtual_environment_scheme(path: os.PathLike[str] | str) -> SchemeDict[pathlib.Path]:
     """Calculates the installation paths for the scheme used by a certain virtual environment.
 
     :param path: Path of the target virtual environment.
@@ -57,8 +72,8 @@ def get_virtual_environment_scheme(path: os.PathLike[str]) -> SchemeDict:
         warnings.warn(
             f"Unknown platform '{os.name}', using the default install scheme.", stacklevel=2
         )
-        return sysconfig.get_paths(vars=config_vars)
-    return sysconfig.get_paths(scheme=scheme, vars=config_vars)
+        return _scheme_dict(sysconfig.get_paths(vars=config_vars))
+    return _scheme_dict(sysconfig.get_paths(scheme=scheme, vars=config_vars))
 
 
 class Introspectable:
@@ -75,7 +90,7 @@ class Introspectable:
         return PythonVersion(**data)
 
     @functools.lru_cache
-    def get_scheme(self, scheme: Optional[str] = None) -> SchemeDict:
+    def get_scheme(self, scheme: Optional[str] = None) -> SchemeDict[pathlib.Path]:
         """Finds the installation paths for a certain Python install scheme.
 
         This helper needs to run the Python interpreter for the target environment.
@@ -83,10 +98,10 @@ class Introspectable:
         :param interpreter: Path to the Python interpreter to introspect.
         :param scheme: Name of the target scheme name. If None, it uses the default scheme.
         """
-        return self._run_script('scheme')
+        return _scheme_dict(self._run_script('scheme'))
 
     @functools.lru_cache
-    def get_system_scheme(self) -> SchemeDict:
+    def get_system_scheme(self) -> SchemeDict[pathlib.Path]:
         """Finds the installation paths for the system Python install scheme.
 
         Certain vendors, such as Debian, have a different scheme for system packages.
@@ -97,7 +112,7 @@ class Introspectable:
         # Fedora automatically changes the default scheme unless RPM_BUILD_ROOT is set
         environment = os.environ.copy()
         environment['RPM_BUILD_ROOT'] = None
-        return self._run_script('system-scheme', env=environment)
+        return _scheme_dict(self._run_script('system-scheme', env=environment))
 
     @functools.lru_cache
     def get_launcher_kind(self) -> Optional[LauncherKind]:

@@ -17,7 +17,7 @@ import environment_helpers.install
 import environment_helpers.introspect
 
 
-__version__ = '0.1.3'
+__version__ = '0.2.0'
 
 
 class Environment(Protocol):
@@ -33,7 +33,7 @@ class Environment(Protocol):
     def scripts(self) -> pathlib.Path: ...
 
     @property
-    def scheme(self) -> environment_helpers.introspect.SchemeDict:
+    def scheme(self) -> environment_helpers.introspect.SchemeDict[pathlib.Path]:
         """Default install scheme for the environment."""
 
     @property
@@ -116,7 +116,7 @@ class VirtualEnvironment(Environment):
         return pathlib.Path(self._scheme['scripts'])
 
     @property
-    def scheme(self) -> environment_helpers.introspect.SchemeDict:
+    def scheme(self) -> environment_helpers.introspect.SchemeDict[pathlib.Path]:
         return self._scheme
 
 

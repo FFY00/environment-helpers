@@ -19,7 +19,9 @@ def install_wheel(
     """Install a wheel file to a Python environment."""
     introspectable = environment_helpers.introspect.Introspectable(interpreter)
     destination = installer.destinations.SchemeDictionaryDestination(
-        scheme_dict=introspectable.get_scheme(scheme),
+        scheme_dict=environment_helpers.introspect.scheme_dict_as_sysconfig(  # type: ignore[arg-type]
+            introspectable.get_scheme(),  # type: ignore[arg-type]
+        ),
         interpreter=os.fspath(interpreter),
         # FIXME: If the launcher kind is None, it means we don't support scripts for this platform.
         #        We set it to posix in that scenario because installer doesn't support this use-case.
