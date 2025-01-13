@@ -6,6 +6,7 @@ import os
 import pathlib
 import pickle
 import subprocess
+import sys
 import sysconfig
 import warnings
 import typing
@@ -18,15 +19,26 @@ LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
 T = TypeVar('T')
 
 
-class SchemeDict(Generic[T], TypedDict):
-    stdlib: T
-    platstdlib: T
-    purelib: T
-    platlib: T
-    include: T
-    platinclude: T
-    scripts: T
-    data: T
+if sys.version_info >= (3, 11):
+    class SchemeDict(Generic[T], TypedDict):
+        stdlib: T
+        platstdlib: T
+        purelib: T
+        platlib: T
+        include: T
+        platinclude: T
+        scripts: T
+        data: T
+else:
+    class SchemeDict(TypedDict):
+        stdlib: T
+        platstdlib: T
+        purelib: T
+        platlib: T
+        include: T
+        platinclude: T
+        scripts: T
+        data: T
 
 
 class PythonVersion(NamedTuple):
