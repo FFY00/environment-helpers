@@ -27,31 +27,36 @@ def test_environment_run_interpreter(venv, mocker):
     mocker.patch('subprocess.check_output')
 
     venv.run_interpreter()
+    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter),),)
+
     venv.run_interpreter('arg0')
+    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0'),)
+
     venv.run_interpreter('arg0', 'arg1')
+    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0', 'arg1'),)
+
     venv.run_interpreter('arg0', 'arg1', 'arg2')
-    assert subprocess.check_output.mock_calls == [
-        mocker.call([os.fspath(venv.interpreter)]),
-        mocker.call([os.fspath(venv.interpreter), 'arg0']),
-        mocker.call([os.fspath(venv.interpreter), 'arg0', 'arg1']),
-        mocker.call([os.fspath(venv.interpreter), 'arg0', 'arg1', 'arg2']),
-    ]
+    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0', 'arg1', 'arg2'),)
 
 
 def test_environment_run_script(venv, mocker):
     mocker.patch('subprocess.check_output')
 
     subprocess.check_output.reset_mock()
+
+    script = os.fspath(venv.scripts / 'test0')
+
     venv.run_script('test0')
+    assert subprocess.check_output.call_args.args == ((script,),)
+
     venv.run_script('test0', 'arg0')
+    assert subprocess.check_output.call_args.args == ((script, 'arg0'),)
+
     venv.run_script('test0', 'arg0', 'arg1')
+    assert subprocess.check_output.call_args.args == ((script, 'arg0', 'arg1'),)
+
     venv.run_script('test0', 'arg0', 'arg1', 'arg2')
-    assert subprocess.check_output.mock_calls == [
-        mocker.call([os.fspath(venv.scripts / 'test0')]),
-        mocker.call([os.fspath(venv.scripts / 'test0'), 'arg0']),
-        mocker.call([os.fspath(venv.scripts / 'test0'), 'arg0', 'arg1']),
-        mocker.call([os.fspath(venv.scripts / 'test0'), 'arg0', 'arg1', 'arg2']),
-    ]
+    assert subprocess.check_output.call_args.args == ((script, 'arg0', 'arg1', 'arg2'),)
 
 
 def test_environment_install_wheel(venv, mocker, example_wheel, tmp_path):
@@ -103,30 +108,30 @@ def test_environment_install_from_path(venv, mocker, packages_path, from_sdist, 
 @pytest.mark.parametrize(
     ('has_pip_local', 'has_pip', 'has_uv', 'expected'),
     [
-        (True, True, True, 'pip-local'),
+        (True, True, True, 'uv'),
         (True, True, False, 'pip-local'),
         (True, False, False, 'pip-local'),
-        (False, True, True, 'pip'),
+        (False, True, True, 'uv'),
         (False, True, False, 'pip'),
         (False, False, True, 'uv'),
     ],
 )
 def test_environment_install(venv, mocker, has_pip_local, has_pip, has_uv, expected):
-    mocker.patch('subprocess.check_call')
-    mocker.patch('shutil.which', side_effect=[has_pip, has_uv])
+    mocker.patch('environment_helpers.Environment.run')
+    mocker.patch('shutil.which', side_effect=[has_uv, has_pip])
 
     if has_pip_local:
         venv.scripts.joinpath('pip').touch(exist_ok=False)
 
     if expected == 'pip':
-        cmd = ['pip', 'install', '--python', os.fspath(venv.interpreter), 'install']
+        cmd = ['pip', '--python', os.fspath(venv.interpreter), 'install']
     elif expected == 'pip-local':
         cmd = [os.fspath(venv.interpreter), '-m', 'pip', 'install']
     elif expected == 'uv':
-        cmd = ['uv', 'pip', '--python', os.fspath(venv.interpreter), 'install']
+        cmd = ['uv', 'pip', 'install', '--python', os.fspath(venv.interpreter)]
 
     venv.install(['requirement0'])
-    subprocess.check_call.assert_called_once_with([*cmd, 'requirement0'])
+    environment_helpers.Environment.run.assert_called_once_with(*cmd, 'requirement0')
 
 
 def test_environment_install_no_default_method(venv, mocker):
