@@ -30,7 +30,11 @@ def _builder(
     isolated: bool = True,
     quiet: bool = False,
 ) -> Iterable[tuple[environment_helpers.Environment, build.ProjectBuilder]]:
-    def runner(cmd: Sequence[str], cwd: Optional[str], extra_environ: Mapping[str, str] | None = None) -> None:
+    def runner(
+        cmd: Sequence[str],
+        cwd: Optional[str],
+        extra_environ: Mapping[str, str] | None = None,
+    ) -> None:
         subprocess.run(cmd, check=True, capture_output=quiet, cwd=cwd, env=env.env | extra_environ)  # type: ignore[operator]
 
     env: environment_helpers.Environment
@@ -82,6 +86,6 @@ def build_wheel_via_sdist(
         # Extract sdist
         with tarfile.TarFile.open(sdist) as t:
             t.extractall(workdir)
-        sdist_dir = os.path.join(workdir, sdist.name[:-len('.tar.gz')])
+        sdist_dir = os.path.join(workdir, sdist.name[: -len('.tar.gz')])
         # Build wheel from sdist source
         return build_wheel(sdist_dir, outdir, config_settings, isolated, quiet)

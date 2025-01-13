@@ -8,10 +8,10 @@ import pickle
 import subprocess
 import sys
 import sysconfig
-import warnings
 import typing
+import warnings
 
-from typing import Any, Callable, Literal, Generic, NamedTuple, Optional, TypedDict, TypeVar, Union
+from typing import Any, Callable, Generic, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
@@ -20,6 +20,7 @@ T = TypeVar('T')
 
 
 if sys.version_info >= (3, 11):
+
     class SchemeDict(Generic[T], TypedDict):
         stdlib: T
         platstdlib: T
@@ -30,6 +31,7 @@ if sys.version_info >= (3, 11):
         scripts: T
         data: T
 else:
+
     class SchemeDict(TypedDict):
         stdlib: T
         platstdlib: T
@@ -50,17 +52,19 @@ class PythonVersion(NamedTuple):
 
 
 def scheme_dict_as_sysconfig(scheme: SchemeDict[os.PathLike[str] | str]) -> SchemeDict[str]:
-    return typing.cast(SchemeDict[str], {
-        key: os.fspath(value)  # type: ignore[call-overload]
-        for key, value in scheme.items()
-    })
+    return typing.cast(
+        SchemeDict[str],
+        {
+            key: os.fspath(value)  # type: ignore[call-overload]
+            for key, value in scheme.items()
+        },
+    )
 
 
 def _scheme_dict(scheme: dict[str, str]) -> SchemeDict[pathlib.Path]:
-    return typing.cast(SchemeDict[pathlib.Path], {
-        key: pathlib.Path(value)
-        for key, value in scheme.items()
-    })
+    return typing.cast(
+        SchemeDict[pathlib.Path], {key: pathlib.Path(value) for key, value in scheme.items()}
+    )
 
 
 def get_virtual_environment_scheme(path: os.PathLike[str] | str) -> SchemeDict[pathlib.Path]:

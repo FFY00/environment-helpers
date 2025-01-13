@@ -11,8 +11,8 @@ import sysconfig
 import tempfile
 import venv
 
-from collections.abc import Mapping, Sequence
-from typing import Any, Collection, Literal, Optional, Protocol
+from collections.abc import Collection, Mapping
+from typing import Any, Literal, Optional, Protocol
 
 import environment_helpers.build
 import environment_helpers.install

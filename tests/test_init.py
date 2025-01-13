@@ -33,10 +33,14 @@ def test_environment_run_interpreter(venv, mocker):
     assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0'),)
 
     venv.run_interpreter('arg0', 'arg1')
-    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0', 'arg1'),)
+    assert subprocess.check_output.call_args.args == (
+        (os.fspath(venv.interpreter), 'arg0', 'arg1'),
+    )
 
     venv.run_interpreter('arg0', 'arg1', 'arg2')
-    assert subprocess.check_output.call_args.args == ((os.fspath(venv.interpreter), 'arg0', 'arg1', 'arg2'),)
+    assert subprocess.check_output.call_args.args == (
+        (os.fspath(venv.interpreter), 'arg0', 'arg1', 'arg2'),
+    )
 
 
 def test_environment_run_script(venv, mocker):
