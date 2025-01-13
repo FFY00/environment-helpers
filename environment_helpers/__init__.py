@@ -87,6 +87,9 @@ class Environment(Protocol):
         requirements: Collection[str],
         method: Optional[Literal['pip', 'uv', 'pip-local']] = None,
     ) -> None:
+        if not len(requirements):
+            return
+
         if not method:
             if shutil.which('uv'):
                 method = 'uv'
