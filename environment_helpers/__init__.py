@@ -107,7 +107,7 @@ class Environment(Protocol):
         elif method == 'uv':
             cmd = ['uv', 'pip', 'install', '--python', os.fspath(self.interpreter)]
 
-        subprocess.check_call([*cmd, *requirements])
+        subprocess.check_output([*cmd, *requirements])
 
 
 class CurrentEnvironment(Environment):
