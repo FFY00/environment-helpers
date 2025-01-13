@@ -11,7 +11,7 @@ import sysconfig
 import tempfile
 import venv
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Collection, Literal, Optional, Protocol
 
 import environment_helpers.build
@@ -37,6 +37,10 @@ class Environment(Protocol):
     @property
     def scheme(self) -> environment_helpers.introspect.SchemeDict[pathlib.Path]:
         """Default install scheme for the environment."""
+
+    @property
+    def env(self) -> Mapping[str, str]:
+        return os.environ
 
     @property
     def introspectable(self) -> environment_helpers.introspect.Introspectable:
@@ -141,6 +145,13 @@ class VirtualEnvironment(Environment):
     @property
     def scheme(self) -> environment_helpers.introspect.SchemeDict[pathlib.Path]:
         return self._scheme
+
+    @property
+    def env(self) -> Mapping[str, str]:
+        return os.environ | {  # type: ignore[no-any-return, operator]
+            'PATH': os.fspath(self.scheme['scripts']) + os.pathsep + os.environ.get('PATH', ''),
+            'VIRTUAL_ENV': os.fspath(self.base),
+        }
 
 
 def create_venv(path: os.PathLike[str] | str, **kwargs: Any) -> Environment:
