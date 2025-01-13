@@ -6,6 +6,8 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
+import sysconfig
 import tempfile
 import venv
 
@@ -93,6 +95,26 @@ class Environment(Protocol):
             cmd = ['uv', 'pip', 'install', '--python', os.fspath(self.interpreter),]
 
         subprocess.check_call([*cmd, *requirements])
+
+
+class CurrentEnvironment(Environment):
+    """Object representing the current environment."""
+
+    @property
+    def base(self) -> pathlib.Path:
+        return pathlib.Path(sys.prefix)
+
+    @property
+    def interpreter(self) -> pathlib.Path:
+        return pathlib.Path(sys.executable)
+
+    @property
+    def scripts(self) -> pathlib.Path:
+        return self.scheme['scripts']
+
+    @property
+    def scheme(self) -> environment_helpers.introspect.SchemeDict[pathlib.Path]:
+        return environment_helpers.introspect._scheme_dict(sysconfig.get_paths())
 
 
 class VirtualEnvironment(Environment):
