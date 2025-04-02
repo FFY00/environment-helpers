@@ -59,7 +59,7 @@ class Environment(Protocol):
     def run_script(self, name: Union[str, os.PathLike[str]], *args: str) -> bytes:
         return self.run(os.fspath(self.scripts / name), *args)
 
-    def install_wheel(self, path: os.PathLike[str], scheme: Optional[str] = None) -> None:
+    def install_wheel(self, path: Union[str, os.PathLike[str]], scheme: Optional[str] = None) -> None:
         path = pathlib.Path(path)
         if not path.is_file():
             raise ValueError(f"{os.fspath(path)} isn't a file")
@@ -67,7 +67,7 @@ class Environment(Protocol):
 
     def install_from_path(
         self,
-        path: os.PathLike[str],
+        path: Union[str, os.PathLike[str]],
         scheme: Optional[str] = None,
         from_sdist: bool = True,
     ) -> None:
