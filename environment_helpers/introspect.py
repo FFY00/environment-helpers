@@ -11,7 +11,7 @@ import sysconfig
 import typing
 import warnings
 
-from typing import Any, Callable, Generic, Literal, NamedTuple, Optional, TypedDict, TypeVar, Union
+from typing import Any, Callable, Generic, Literal, NamedTuple, Optional, TypeVar, Union
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
@@ -20,27 +20,20 @@ T = TypeVar('T')
 
 
 if sys.version_info >= (3, 11):
-
-    class SchemeDict(Generic[T], TypedDict):
-        stdlib: T
-        platstdlib: T
-        purelib: T
-        platlib: T
-        include: T
-        platinclude: T
-        scripts: T
-        data: T
+    from typing import TypedDict
 else:
+    from typing_extensions import TypedDict
 
-    class SchemeDict(TypedDict):
-        stdlib: T
-        platstdlib: T
-        purelib: T
-        platlib: T
-        include: T
-        platinclude: T
-        scripts: T
-        data: T
+
+class SchemeDict(Generic[T], TypedDict):
+    stdlib: T
+    platstdlib: T
+    purelib: T
+    platlib: T
+    include: T
+    platinclude: T
+    scripts: T
+    data: T
 
 
 class PythonVersion(NamedTuple):
