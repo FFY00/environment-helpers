@@ -12,7 +12,7 @@ import tempfile
 import venv
 
 from collections.abc import Collection, Mapping
-from typing import Any, Literal, Optional, Protocol, Union
+from typing import Any, Literal, Optional, Protocol
 
 import environment_helpers.build
 import environment_helpers.install
@@ -47,19 +47,19 @@ class Environment(Protocol):
         """Introspectable object for the environment."""
         return environment_helpers.introspect.Introspectable(self.interpreter)
 
-    def run(self, *args: Union[str, os.PathLike[str]], **kwargs: Any) -> bytes:
+    def run(self, *args: str | os.PathLike[str], **kwargs: Any) -> bytes:
         default_kwargs = {
             'env': self.env,
         }
         return subprocess.check_output(args, **default_kwargs | kwargs)  # type: ignore[operator, return-value]
 
-    def run_interpreter(self, *args: Union[str, os.PathLike[str]], **kwargs: Any) -> bytes:
+    def run_interpreter(self, *args: str | os.PathLike[str], **kwargs: Any) -> bytes:
         return self.run(os.fspath(self.interpreter), *args, **kwargs)
 
-    def run_script(self, name: Union[str, os.PathLike[str]], *args: str) -> bytes:
+    def run_script(self, name: str | os.PathLike[str], *args: str) -> bytes:
         return self.run(os.fspath(self.scripts / name), *args)
 
-    def install_wheel(self, path: Union[str, os.PathLike[str]], scheme: Optional[str] = None) -> None:
+    def install_wheel(self, path: str | os.PathLike[str], scheme: Optional[str] = None) -> None:
         path = pathlib.Path(path)
         if not path.is_file():
             raise ValueError(f"{os.fspath(path)} isn't a file")
@@ -67,7 +67,7 @@ class Environment(Protocol):
 
     def install_from_path(
         self,
-        path: Union[str, os.PathLike[str]],
+        path: str | os.PathLike[str],
         scheme: Optional[str] = None,
         from_sdist: bool = True,
     ) -> None:

@@ -8,7 +8,6 @@ import tarfile
 import tempfile
 
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Optional
 
 import build
 
@@ -32,7 +31,7 @@ def _builder(
 ) -> Iterable[tuple[environment_helpers.Environment, build.ProjectBuilder]]:
     def runner(
         cmd: Sequence[str],
-        cwd: Optional[str],
+        cwd: str | None,
         extra_environ: Mapping[str, str] | None = None,
     ) -> None:
         subprocess.run(cmd, check=True, capture_output=quiet, cwd=cwd, env=env.env | extra_environ)  # type: ignore[operator]
@@ -45,7 +44,7 @@ def _builder(
 def build_sdist(
     srcdir: os.PathLike[str] | str,
     outdir: os.PathLike[str] | str,
-    config_settings: Optional[build.ConfigSettingsType] = None,
+    config_settings: build.ConfigSettingsType | None = None,
     isolated: bool = True,
     quiet: bool = False,
 ) -> pathlib.Path:
@@ -61,7 +60,7 @@ def build_sdist(
 def build_wheel(
     srcdir: os.PathLike[str] | str,
     outdir: os.PathLike[str] | str,
-    config_settings: Optional[build.ConfigSettingsType] = None,
+    config_settings: build.ConfigSettingsType | None = None,
     isolated: bool = True,
     quiet: bool = False,
 ) -> pathlib.Path:
@@ -77,7 +76,7 @@ def build_wheel(
 def build_wheel_via_sdist(
     srcdir: os.PathLike[str] | str,
     outdir: os.PathLike[str] | str,
-    config_settings: Optional[build.ConfigSettingsType] = None,
+    config_settings: build.ConfigSettingsType | None = None,
     isolated: bool = True,
     quiet: bool = False,
 ) -> pathlib.Path:

@@ -3,8 +3,6 @@ from __future__ import annotations
 import os
 import pathlib
 
-from typing import Optional
-
 import installer
 import installer.destinations
 import installer.sources
@@ -14,7 +12,9 @@ import environment_helpers.introspect
 
 
 def install_wheel(
-    wheel: pathlib.Path, interpreter: pathlib.Path, scheme: Optional[str] = None
+    wheel: pathlib.Path,
+    interpreter: pathlib.Path,
+    scheme: str | None = None,
 ) -> None:
     """Install a wheel file to a Python environment."""
     introspectable = environment_helpers.introspect.Introspectable(interpreter)

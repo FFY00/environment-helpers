@@ -11,7 +11,7 @@ import sysconfig
 import typing
 import warnings
 
-from typing import Any, Callable, Generic, Literal, NamedTuple, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Literal, NamedTuple, TypeVar
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
@@ -99,7 +99,7 @@ class Introspectable:
         return PythonVersion(**data)
 
     @functools.lru_cache
-    def get_scheme(self, scheme: Optional[str] = None) -> SchemeDict[pathlib.Path]:
+    def get_scheme(self, scheme: str | None = None) -> SchemeDict[pathlib.Path]:
         """Finds the installation paths for a certain Python install scheme.
 
         This helper needs to run the Python interpreter for the target environment.
@@ -124,14 +124,14 @@ class Introspectable:
         return _scheme_dict(self._run_script('system-scheme', env=environment))
 
     @functools.lru_cache
-    def get_launcher_kind(self) -> Optional[LauncherKind]:
+    def get_launcher_kind(self) -> LauncherKind | None:
         """Find the launcher kind.
 
         This helper needs to run the Python interpreter for the target environment.
         """
-        return typing.cast(Optional[LauncherKind], self._run_script('launcher-kind'))
+        return typing.cast(LauncherKind | None, self._run_script('launcher-kind'))
 
-    def call(self, func: Union[str, Callable[[Any], T]], *args: Any, **kwargs: Any) -> T:
+    def call(self, func: str | Callable[[Any], T], *args: Any, **kwargs: Any) -> T:
         """Call the a function in the target environment.
 
         :param interpreter: Path to the Python interpreter to introspect.
