@@ -141,5 +141,5 @@ def test_environment_install(venv, mocker, has_pip_local, has_pip, has_uv, expec
 def test_environment_install_no_default_method(venv, mocker):
     mocker.patch('shutil.which', return_value=False)
 
-    with pytest.raises(ValueError, match='No valid install method found.'):
+    with pytest.raises(ValueError, match=re.escape('No valid install method found.')):
         venv.install(['requirement0'])
