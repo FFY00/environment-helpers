@@ -12,7 +12,7 @@ import tempfile
 import venv
 
 from collections.abc import Collection, Mapping
-from typing import Any, Literal, Optional, Protocol
+from typing import Any, Literal, Protocol
 
 import environment_helpers.build
 import environment_helpers.install
@@ -59,7 +59,7 @@ class Environment(Protocol):
     def run_script(self, name: str | os.PathLike[str], *args: str) -> bytes:
         return self.run(os.fspath(self.scripts / name), *args)
 
-    def install_wheel(self, path: str | os.PathLike[str], scheme: Optional[str] = None) -> None:
+    def install_wheel(self, path: str | os.PathLike[str], scheme: str | None = None) -> None:
         path = pathlib.Path(path)
         if not path.is_file():
             raise ValueError(f"{os.fspath(path)} isn't a file")
@@ -68,7 +68,7 @@ class Environment(Protocol):
     def install_from_path(
         self,
         path: str | os.PathLike[str],
-        scheme: Optional[str] = None,
+        scheme: str | None = None,
         from_sdist: bool = True,
     ) -> None:
         if not os.path.isdir(path):
@@ -85,7 +85,7 @@ class Environment(Protocol):
     def install(
         self,
         requirements: Collection[str],
-        method: Optional[Literal['pip', 'uv', 'pip-local']] = None,
+        method: Literal['pip', 'uv', 'pip-local'] | None = None,
     ) -> None:
         if not len(requirements):
             return
