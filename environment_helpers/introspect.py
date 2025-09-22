@@ -11,7 +11,8 @@ import sysconfig
 import typing
 import warnings
 
-from typing import Any, Callable, Generic, Literal, NamedTuple, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, Literal, NamedTuple, TypeVar
 
 
 LauncherKind = Literal['posix', 'win-ia32', 'win-amd64', 'win-arm', 'win-arm64']
