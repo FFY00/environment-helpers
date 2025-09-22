@@ -138,6 +138,11 @@ class VirtualEnvironment(Environment):
         self._scheme = environment_helpers.introspect.get_virtual_environment_scheme(path)
         assert self.interpreter.is_file()
 
+    @classmethod
+    def create_venv(cls, path: os.PathLike[str] | str, **kwargs: Any) -> Environment:
+        venv.create(path, **kwargs)
+        return cls(path)
+
     @property
     def base(self) -> pathlib.Path:
         return self._base
@@ -163,6 +168,4 @@ class VirtualEnvironment(Environment):
         }
 
 
-def create_venv(path: os.PathLike[str] | str, **kwargs: Any) -> Environment:
-    venv.create(path, **kwargs)
-    return VirtualEnvironment(path)
+create_venv = VirtualEnvironment.create_venv
